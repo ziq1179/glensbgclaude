@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Staff portal for The Glens Residential Home.">
+    <title>Staff Portal | The Glens Residential Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- Top Bar -->
+<div class="top-bar" role="complementary" aria-label="Contact and accessibility options">
+    <div class="container">
+        <div class="top-bar-left">
+            <div class="top-contact">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                <a href="tel:+442821771234">028 2177 1234</a>
+            </div>
+            <div class="top-contact">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <a href="mailto:info@theglensresidentialhome.co.uk">info@theglensresidentialhome.co.uk</a>
+            </div>
+            <span style="opacity:0.35">|</span>
+            <span data-gd="address">63 Middlepark Road, Cushendall, Co. Antrim</span>
+        </div>    </div>
+</div>
+
+<!-- Header -->
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="site-logo" aria-label="The Glens Residential Home — return to homepage">
+            <div class="logo-mark" aria-hidden="true">TG</div>
+            <div class="logo-text">
+                <strong>The Glens</strong>
+                <span>Residential Home</span>
+            </div>
+        </a>
+
+        <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="about.html" class="nav-link">About Us</a>
+            <a href="care.html" class="nav-link">Our Care</a>
+            <a href="life.html" class="nav-link">Life at The Glens</a>
+            <a href="admissions.html" class="nav-link">Admissions</a>
+            <a href="governance.html" class="nav-link">Governance &amp; Contact</a>
+        </nav>
+
+        <div class="hdr-cta">
+            <a href="tel:+442821771234" class="phone-btn" aria-label="Call us on 028 2177 1234">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                028 2177 1234
+            </a>
+            <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+<div class="nav-overlay" id="navOverlay" aria-hidden="true"></div>
+
+<main id="main">
+
+    <section class="page-banner" aria-labelledby="staff-h1">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+                <a href="index.html">Home</a> <span aria-hidden="true">&rsaquo;</span> Staff Portal
+            </nav>
+            <h1 id="staff-h1">Staff Portal</h1>
+            <p>Manage published photos and the home&#x2019;s public contact details.</p>
+        </div>
+    </section>
+
+    <section class="section-pad bg-cream">
+        <div class="container container-narrow">
+
+            <!-- Login -->
+            <div id="loginView" class="staff-card" hidden>
+                <h2>Staff Sign In</h2>
+                <p class="muted">Authorised staff only. This is a demonstration portal &mdash; please use the demo credentials provided to you.</p>
+                <form id="loginForm" novalidate>
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" autocomplete="username" required>
+                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
+                    </div>
+                    <p id="loginError" class="form-msg error" hidden>Incorrect username or password.</p>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </form>
+                <p class="demo-hint">Demo credentials &mdash; username <code>staff</code>, password <code>glens2024</code></p>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashView" hidden>
+                <div class="dash-head">
+                    <h2>Welcome, Staff</h2>
+                    <button type="button" id="logoutBtn" class="btn btn-outline-dark btn-sm">Sign Out</button>
+                </div>
+
+                <!-- Theme switcher -->
+                <div class="staff-card">
+                    <h3>Website Theme</h3>
+                    <p class="muted">Choose the colour scheme used across the whole public website. Changes apply instantly.</p>
+                    <fieldset class="theme-options">
+                        <legend class="sr-only">Website colour theme</legend>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="default">
+                            <span class="theme-swatch theme-swatch-default" aria-hidden="true">
+                                <span style="background:#a4185c"></span>
+                                <span style="background:#17707f"></span>
+                            </span>
+                            <span class="theme-name">Heritage <small>(magenta &amp; teal)</small></span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="navy">
+                            <span class="theme-swatch theme-swatch-navy" aria-hidden="true">
+                                <span style="background:#1e3a8a"></span>
+                                <span style="background:#b8860b"></span>
+                            </span>
+                            <span class="theme-name">Navy Blue <small>(navy &amp; gold)</small></span>
+                        </label>
+                    </fieldset>
+                    <p id="themeSaved" class="form-msg success" hidden>Theme updated &mdash; it now applies across the site.</p>
+                </div>
+
+                <!-- Contact editor -->
+                <div class="staff-card">
+                    <h3>Public Contact Details</h3>
+                    <p class="muted">These update the phone number, email, and address shown across the whole website.</p>
+                    <form id="contactForm">
+                        <div class="field">
+                            <label for="cPhone">Phone number</label>
+                            <input type="tel" id="cPhone" name="cPhone" required>
+                        </div>
+                        <div class="field">
+                            <label for="cEmail">Email address</label>
+                            <input type="email" id="cEmail" name="cEmail" required>
+                        </div>
+                        <div class="field">
+                            <label for="cAddress">Postal address</label>
+                            <input type="text" id="cAddress" name="cAddress" required>
+                        </div>
+                        <p id="contactSaved" class="form-msg success" hidden>Contact details saved &mdash; they now appear across the site.</p>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Contact Details</button>
+                            <button type="button" id="contactReset" class="btn btn-outline-dark btn-sm">Reset to default</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Photo manager -->
+                <div class="staff-card">
+                    <h3>Upload Photos</h3>
+                    <p class="muted">Publish photos to the website galleries. Choose where each upload should appear.</p>
+                    <form id="photoForm">
+                        <div class="field">
+                            <label for="photoFiles">Choose image(s)</label>
+                            <input type="file" id="photoFiles" name="photoFiles" accept="image/*" multiple required>
+                        </div>
+                        <div class="field">
+                            <label for="photoCaption">Caption (optional)</label>
+                            <input type="text" id="photoCaption" name="photoCaption" maxlength="120" placeholder="e.g. Summer garden party 2026">
+                        </div>
+                        <div class="field">
+                            <label for="photoTarget">Show on</label>
+                            <select id="photoTarget" name="photoTarget">
+                                <option value="hero">Home page main banner (hero photo)</option>
+                                <option value="life">Life at The Glens gallery</option>
+                                <option value="home">Home page highlights</option>
+                                <option value="both">Both pages</option>
+                            </select>
+                        </div>
+                        <p id="photoMsg" class="form-msg" hidden></p>
+                        <button type="submit" class="btn btn-primary">Publish Photos</button>
+                    </form>
+
+                    <h4 class="published-head">Published Photos</h4>
+                    <div id="photoList" class="photo-admin-list"></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo-wrap site-logo">
+                    <div class="logo-mark" aria-hidden="true">TG</div>
+                    <div class="logo-text">
+                        <strong>The Glens</strong>
+                        <span>Residential Home</span>
+                    </div>
+                </div>
+                <p class="footer-tagline">A warm, person-centred residential home in the heart of Cushendall, Northern Ireland. Dedicated to enabling residents to live fulfilled, dignified lives — because homes are for living.</p>
+                <div class="footer-contacts">
+                    <a href="tel:+442821771234" aria-label="Phone: 028 2177 1234">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .84h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                        028 2177 1234
+                    </a>
+                    <a href="mailto:info@theglensresidentialhome.co.uk" aria-label="Email us">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        info@theglensresidentialhome.co.uk
+                    </a>
+                    <a href="governance.html" data-gd="address" aria-label="View address and map">
+                        63 Middlepark Road, Cushendall, BT44
+                    </a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <nav class="footer-links" aria-label="Footer quick links">
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About Us</a>
+                    <a href="care.html">Our Care</a>
+                    <a href="life.html">Life at The Glens</a>
+                    <a href="admissions.html">Admissions</a>
+                    <a href="governance.html">Governance &amp; Contact</a>
+                </nav>
+            </div>
+            <div class="footer-col">
+                <h4>Our Care</h4>
+                <nav class="footer-links" aria-label="Care services links">
+                    <a href="care.html#elderly">Elderly Care (RC-I)</a>
+                    <a href="care.html#physical">Physical Disability (RC-PH)</a>
+                    <a href="care.html#mental">Mental Health (RC-MP)</a>
+                    <a href="admissions.html#fees">Fee Schedule</a>
+                    <a href="admissions.html#process">Admission Process</a>
+                </nav>
+            </div>
+            <div class="footer-col">
+                <h4>Regulatory</h4>
+                <div class="reg-badge">
+                    <strong>RQIA Registered</strong>
+                    Regulation &amp; Quality Improvement Authority
+                </div>
+                <div class="reg-badge">
+                    <strong>NISCC Standards</strong>
+                    NI Social Care Council — all staff registered
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p data-gd="copyright">&copy; 2024 The Glens Residential Home. 63 Middlepark Road, Cushendall, Co. Antrim, BT44. Registered with RQIA.</p>
+            <div class="footer-bottom-links">
+                <a href="governance.html#complaints">Complaints Policy</a>
+                <a href="governance.html#privacy">Privacy Notice</a>
+                <a href="governance.html#terms">Terms of Business</a>
+                <a href="staff.html">Staff Portal</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="js/main.js?v=2"></script>
+<script src="js/staff.js?v=2"></script>
+</body>
+</html>

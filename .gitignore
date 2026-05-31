@@ -1,0 +1,16 @@
+# Internal design brief (not for the public repo)
+Website Development Blueprint-The Glens Residential Home.docx
+
+# Local Claude Code settings (machine-specific)
+.claude/settings.local.json
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+desktop.ini
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
