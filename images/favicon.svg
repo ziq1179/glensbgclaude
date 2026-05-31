@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="The Glens">
+  <defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c43d80"/>
+      <stop offset="1" stop-color="#a4185c"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#tg)"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central"
+        font-family="'Poppins','Segoe UI',system-ui,-apple-system,Arial,sans-serif"
+        font-size="30" font-weight="700" fill="#ffffff" letter-spacing="-1">TG</text>
+</svg>
