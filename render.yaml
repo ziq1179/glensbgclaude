@@ -1,0 +1,15 @@
+# Render Blueprint — deploys The Glens site as a Node web service.
+# Set the secret env vars (DATABASE_URL, STAFF_PASSWORD) in the Render
+# dashboard, NOT here. They are marked sync:false so Render prompts for them.
+services:
+  - type: web
+    name: glens-residential-home
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: STAFF_PASSWORD
+        sync: false

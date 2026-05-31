@@ -100,7 +100,11 @@
         });
     });
 
-    /* === Site content driven by staff dashboard (localStorage) === */
+    /* === Site content driven by the staff dashboard ===
+       Data is loaded from the shared backend API (/api/state) so every visitor
+       sees the same photos and contact details. If the API is unavailable
+       (e.g. running the plain static files with no server), we fall back to
+       this browser's localStorage so the demo still works locally. */
 
     // Replace the first non-empty text node of a link, preserving child SVG icons.
     function setLinkLabel(link, text) {
@@ -119,11 +123,29 @@
         return 'tel:+44' + digits;
     }
 
-    function renderContact() {
-        var raw = localStorage.getItem('glens-contact');
-        if (!raw) return;
-        var c;
-        try { c = JSON.parse(raw); } catch (e) { return; }
+    function localState() {
+        var contact = null, photos = [];
+        var rawC = localStorage.getItem('glens-contact');
+        if (rawC) { try { contact = JSON.parse(rawC); } catch (e) {} }
+        var rawP = localStorage.getItem('glens-photos');
+        if (rawP) { try { photos = JSON.parse(rawP); } catch (e) { photos = []; } }
+        var theme = localStorage.getItem('glens-theme') === 'navy' ? 'navy' : 'default';
+        return { contact: contact, photos: photos, theme: theme };
+    }
+
+    function loadState() {
+        return fetch('/api/state', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+            .then(function (s) {
+                // Cache theme for a fast, flash-free paint next visit.
+                try { localStorage.setItem('glens-theme', s.theme === 'navy' ? 'navy' : 'default'); } catch (e) {}
+                return s;
+            })
+            .catch(function () { return localState(); });
+    }
+
+    function renderContact(c) {
+        if (!c) return;
 
         if (c.phone) {
             document.querySelectorAll('a[href^="tel:"]').forEach(function (a) {
@@ -152,10 +174,8 @@
         }
     }
 
-    function renderGallery() {
-        var raw = localStorage.getItem('glens-photos');
-        var photos = [];
-        if (raw) { try { photos = JSON.parse(raw); } catch (e) { photos = []; } }
+    function renderGallery(photos) {
+        photos = photos || [];
 
         ['home', 'life'].forEach(function (target) {
             var grid = document.getElementById(target + 'Gallery');
@@ -188,12 +208,10 @@
         });
     }
 
-    function renderHero() {
+    function renderHero(photos) {
         var heroEl = document.querySelector('.hero-photo');
         if (!heroEl) return;
-        var raw = localStorage.getItem('glens-photos');
-        var photos = [];
-        if (raw) { try { photos = JSON.parse(raw); } catch (e) { photos = []; } }
+        photos = photos || [];
         var heroes = photos.filter(function (p) { return p.target === 'hero'; });
         if (!heroes.length) return;
 
@@ -206,8 +224,19 @@
         if (p.caption) heroEl.setAttribute('aria-label', p.caption);
     }
 
-    renderContact();
-    renderGallery();
-    renderHero();
+    function applyTheme(theme) {
+        if (theme === 'navy') {
+            document.documentElement.setAttribute('data-theme', 'navy');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }
+
+    loadState().then(function (s) {
+        applyTheme(s.theme);
+        renderContact(s.contact);
+        renderGallery(s.photos);
+        renderHero(s.photos);
+    });
 
 }());

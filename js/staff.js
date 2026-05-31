@@ -1,19 +1,23 @@
 /* The Glens Residential Home — staff.js
-   Browser-only demo admin. NOTE: this is a front-end prototype.
-   "Authentication" here is NOT secure and provides no real protection —
-   it only gates the demo UI. Real staff access requires a backend. */
+ *
+ * Admin dashboard. In production it talks to the shared backend API so that
+ * photos, contact details and the theme are saved in Neon Postgres and seen
+ * by every visitor. If no API is present (e.g. opening the static files with
+ * no Node server), it falls back to this browser's localStorage so the demo
+ * still works locally. */
 
 (function () {
     'use strict';
 
-    /* Demo credentials — prototype only, not a real security boundary. */
-    var DEMO_USER = 'staff';
-    var DEMO_PASS = 'glens2024';
-
     var SESSION_KEY = 'glens-staff-session';
+    var TOKEN_KEY   = 'glens-staff-token';
     var CONTACT_KEY = 'glens-contact';
     var PHOTOS_KEY  = 'glens-photos';
     var THEME_KEY   = 'glens-theme';
+
+    /* Demo credentials used ONLY in the localStorage fallback (no server). */
+    var DEMO_USER = 'staff';
+    var DEMO_PASS = 'glens2024';
 
     var DEFAULT_CONTACT = {
         phone: '028 2177 1234',
@@ -21,10 +25,70 @@
         address: '63 Middlepark Road, Cushendall, Co. Antrim, BT44'
     };
 
+    var MAX_BYTES = 2 * 1024 * 1024; // 2MB per image
+
     var loginView = document.getElementById('loginView');
     var dashView  = document.getElementById('dashView');
 
+    /* Whether the shared backend is available. Detected on first load. */
+    var apiOn = false;
+
+    /* ===================== Small helpers ===================== */
+
+    function token() { return sessionStorage.getItem(TOKEN_KEY) || ''; }
+
+    function apiGetState() {
+        return fetch('/api/state', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); });
+    }
+
+    function apiSend(method, url, body) {
+        return fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token()
+            },
+            body: body ? JSON.stringify(body) : undefined
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (data) {
+                if (!r.ok) throw new Error(data.error || ('Request failed (' + r.status + ')'));
+                return data;
+            });
+        });
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    function flash(el, msg, ok) {
+        if (!el) return;
+        if (typeof msg === 'string') el.textContent = msg;
+        if (el.classList && el.classList.contains('form-msg')) {
+            el.className = 'form-msg ' + (ok ? 'success' : 'error');
+        }
+        el.hidden = false;
+        if (ok !== false) {
+            setTimeout(function () { el.hidden = true; }, 3500);
+        }
+    }
+
+    function readFile(file) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () { resolve(reader.result); };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /* ===================== View switching ===================== */
+
     function isLoggedIn() {
+        if (apiOn) return !!token();
         return sessionStorage.getItem(SESSION_KEY) === 'true';
     }
 
@@ -41,7 +105,8 @@
         loginView.hidden = false;
     }
 
-    /* ===== Login ===== */
+    /* ===================== Login ===================== */
+
     var loginForm = document.getElementById('loginForm');
     var loginError = document.getElementById('loginError');
 
@@ -49,22 +114,36 @@
         e.preventDefault();
         var u = document.getElementById('username').value.trim();
         var p = document.getElementById('password').value;
-        if (u === DEMO_USER && p === DEMO_PASS) {
-            sessionStorage.setItem(SESSION_KEY, 'true');
-            loginError.hidden = true;
-            loginForm.reset();
-            showDashboard();
+        loginError.hidden = true;
+
+        if (apiOn) {
+            apiSend('POST', '/api/login', { password: p }).then(function (data) {
+                sessionStorage.setItem(TOKEN_KEY, data.token);
+                loginForm.reset();
+                showDashboard();
+            }).catch(function (err) {
+                loginError.textContent = err.message || 'Incorrect password.';
+                loginError.hidden = false;
+            });
         } else {
-            loginError.hidden = false;
+            if (u === DEMO_USER && p === DEMO_PASS) {
+                sessionStorage.setItem(SESSION_KEY, 'true');
+                loginForm.reset();
+                showDashboard();
+            } else {
+                loginError.hidden = false;
+            }
         }
     });
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
         sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(TOKEN_KEY);
         showLogin();
     });
 
-    /* ===== Theme switcher ===== */
+    /* ===================== Theme switcher ===================== */
+
     var themeSaved = document.getElementById('themeSaved');
 
     function applyThemeToPage(theme) {
@@ -76,38 +155,59 @@
     }
 
     function loadTheme() {
-        var theme = localStorage.getItem(THEME_KEY) === 'navy' ? 'navy' : 'default';
-        var radio = document.querySelector('input[name="theme"][value="' + theme + '"]');
-        if (radio) radio.checked = true;
-        applyThemeToPage(theme);
+        var apply = function (theme) {
+            theme = theme === 'navy' ? 'navy' : 'default';
+            var radio = document.querySelector('input[name="theme"][value="' + theme + '"]');
+            if (radio) radio.checked = true;
+            applyThemeToPage(theme);
+        };
+        if (apiOn) {
+            apiGetState().then(function (s) { apply(s.theme); }).catch(function () {
+                apply(localStorage.getItem(THEME_KEY));
+            });
+        } else {
+            apply(localStorage.getItem(THEME_KEY));
+        }
     }
 
     Array.prototype.forEach.call(document.querySelectorAll('input[name="theme"]'), function (radio) {
         radio.addEventListener('change', function () {
             if (!radio.checked) return;
             var theme = radio.value === 'navy' ? 'navy' : 'default';
-            localStorage.setItem(THEME_KEY, theme);
             applyThemeToPage(theme);
-            themeSaved.hidden = false;
-            setTimeout(function () { themeSaved.hidden = true; }, 3000);
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+            if (apiOn) {
+                apiSend('POST', '/api/theme', { theme: theme }).then(function () {
+                    flash(themeSaved, null, true);
+                }).catch(function (err) { flash(themeSaved, err.message, false); });
+            } else {
+                flash(themeSaved, null, true);
+            }
         });
     });
 
-    /* ===== Contact editor ===== */
+    /* ===================== Contact editor ===================== */
+
     var contactForm = document.getElementById('contactForm');
     var contactSaved = document.getElementById('contactSaved');
 
-    function getContact() {
-        var raw = localStorage.getItem(CONTACT_KEY);
-        if (raw) { try { return JSON.parse(raw); } catch (e) {} }
-        return Object.assign({}, DEFAULT_CONTACT);
-    }
-
-    function loadContact() {
-        var c = getContact();
+    function fillContact(c) {
+        c = c || DEFAULT_CONTACT;
         document.getElementById('cPhone').value = c.phone || '';
         document.getElementById('cEmail').value = c.email || '';
         document.getElementById('cAddress').value = c.address || '';
+    }
+
+    function loadContact() {
+        if (apiOn) {
+            apiGetState().then(function (s) { fillContact(s.contact); })
+                .catch(function () { fillContact(DEFAULT_CONTACT); });
+        } else {
+            var raw = localStorage.getItem(CONTACT_KEY);
+            var c = DEFAULT_CONTACT;
+            if (raw) { try { c = JSON.parse(raw); } catch (e) {} }
+            fillContact(c);
+        }
     }
 
     contactForm.addEventListener('submit', function (e) {
@@ -117,59 +217,55 @@
             email: document.getElementById('cEmail').value.trim(),
             address: document.getElementById('cAddress').value.trim()
         };
-        localStorage.setItem(CONTACT_KEY, JSON.stringify(c));
-        contactSaved.hidden = false;
-        setTimeout(function () { contactSaved.hidden = true; }, 3000);
+        if (apiOn) {
+            apiSend('POST', '/api/contact', c).then(function () {
+                flash(contactSaved, null, true);
+            }).catch(function (err) { flash(contactSaved, err.message, false); });
+        } else {
+            localStorage.setItem(CONTACT_KEY, JSON.stringify(c));
+            flash(contactSaved, null, true);
+        }
     });
 
     document.getElementById('contactReset').addEventListener('click', function () {
-        localStorage.setItem(CONTACT_KEY, JSON.stringify(DEFAULT_CONTACT));
-        loadContact();
-        contactSaved.hidden = false;
-        setTimeout(function () { contactSaved.hidden = true; }, 3000);
+        fillContact(DEFAULT_CONTACT);
+        if (apiOn) {
+            apiSend('POST', '/api/contact', DEFAULT_CONTACT).then(function () {
+                flash(contactSaved, null, true);
+            }).catch(function (err) { flash(contactSaved, err.message, false); });
+        } else {
+            localStorage.setItem(CONTACT_KEY, JSON.stringify(DEFAULT_CONTACT));
+            flash(contactSaved, null, true);
+        }
     });
 
-    /* ===== Photo manager ===== */
+    /* ===================== Photo manager ===================== */
+
     var photoForm = document.getElementById('photoForm');
     var photoInput = document.getElementById('photoFiles');
     var photoList = document.getElementById('photoList');
     var photoMsg = document.getElementById('photoMsg');
-    var MAX_BYTES = 1.5 * 1024 * 1024; // ~1.5MB per image to stay within localStorage limits
+    var photoLabels = { hero: 'Home hero banner', home: 'Home page', life: 'Life page', both: 'Home + Life' };
 
-    function getPhotos() {
+    /* localStorage helpers (fallback mode only) */
+    function lsGetPhotos() {
         var raw = localStorage.getItem(PHOTOS_KEY);
         if (raw) { try { return JSON.parse(raw); } catch (e) {} }
         return [];
     }
-
-    function savePhotos(arr) {
-        try {
-            localStorage.setItem(PHOTOS_KEY, JSON.stringify(arr));
-            return true;
-        } catch (e) {
-            photoMsg.textContent = 'Storage full — remove some photos and try again. (Browser storage is limited in this demo.)';
-            photoMsg.className = 'form-msg error';
-            photoMsg.hidden = false;
+    function lsSavePhotos(arr) {
+        try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(arr)); return true; }
+        catch (e) {
+            flash(photoMsg, 'Storage full — remove some photos and try again.', false);
             return false;
         }
-    }
-
-    function readFile(file) {
-        return new Promise(function (resolve, reject) {
-            var reader = new FileReader();
-            reader.onload = function () { resolve(reader.result); };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
     }
 
     photoForm.addEventListener('submit', function (e) {
         e.preventDefault();
         var files = Array.prototype.slice.call(photoInput.files);
         if (!files.length) {
-            photoMsg.textContent = 'Please choose at least one image.';
-            photoMsg.className = 'form-msg error';
-            photoMsg.hidden = false;
+            flash(photoMsg, 'Please choose at least one image.', false);
             return;
         }
         var target = document.getElementById('photoTarget').value;
@@ -177,9 +273,7 @@
 
         var tooBig = files.filter(function (f) { return f.size > MAX_BYTES; });
         if (tooBig.length) {
-            photoMsg.textContent = 'Some images are larger than 1.5MB and were skipped. Please use smaller images in this demo.';
-            photoMsg.className = 'form-msg error';
-            photoMsg.hidden = false;
+            flash(photoMsg, 'Some images are larger than 2MB and were skipped.', false);
         }
         var valid = files.filter(function (f) {
             return f.type.indexOf('image/') === 0 && f.size <= MAX_BYTES;
@@ -187,71 +281,97 @@
         if (!valid.length) return;
 
         Promise.all(valid.map(readFile)).then(function (dataUrls) {
-            var photos = getPhotos();
+            if (apiOn) {
+                return Promise.all(dataUrls.map(function (src) {
+                    return apiSend('POST', '/api/photos', { src: src, caption: caption, target: target });
+                }));
+            }
+            var photos = lsGetPhotos();
             dataUrls.forEach(function (src) {
                 photos.push({
                     id: 'p' + Date.now() + Math.random().toString(36).slice(2, 7),
-                    src: src,
-                    caption: caption,
-                    target: target
+                    src: src, caption: caption, target: target
                 });
             });
-            if (savePhotos(photos)) {
-                photoForm.reset();
-                renderPhotoList();
-                photoMsg.textContent = valid.length + ' photo(s) published.';
-                photoMsg.className = 'form-msg success';
-                photoMsg.hidden = false;
-                setTimeout(function () { photoMsg.hidden = true; }, 3500);
-            }
+            lsSavePhotos(photos);
+            return null;
+        }).then(function () {
+            photoForm.reset();
+            renderPhotoList();
+            flash(photoMsg, valid.length + ' photo(s) published.', true);
+        }).catch(function (err) {
+            flash(photoMsg, err.message || 'Upload failed.', false);
         });
     });
 
     function renderPhotoList() {
-        var photos = getPhotos();
-        photoList.innerHTML = '';
-        if (!photos.length) {
-            photoList.innerHTML = '<p class="muted">No photos published yet.</p>';
-            return;
-        }
-        photos.forEach(function (p) {
-            var card = document.createElement('div');
-            card.className = 'photo-admin-item';
+        var done = function (photos) {
+            photoList.innerHTML = '';
+            if (!photos.length) {
+                photoList.innerHTML = '<p class="muted">No photos published yet.</p>';
+                return;
+            }
+            photos.forEach(function (p) {
+                var card = document.createElement('div');
+                card.className = 'photo-admin-item';
 
-            var img = document.createElement('img');
-            img.src = p.src;
-            img.alt = p.caption || 'Uploaded photo';
-            card.appendChild(img);
+                var img = document.createElement('img');
+                img.src = p.src;
+                img.alt = p.caption || 'Uploaded photo';
+                card.appendChild(img);
 
-            var meta = document.createElement('div');
-            meta.className = 'photo-admin-meta';
-            var labels = { hero: 'Home hero banner', home: 'Home page', life: 'Life page', both: 'Home + Life' };
-            meta.innerHTML = '<span class="photo-target">' + (labels[p.target] || p.target) + '</span>' +
-                '<span class="photo-cap">' + (p.caption ? escapeHtml(p.caption) : '<em>No caption</em>') + '</span>';
-            card.appendChild(meta);
+                var meta = document.createElement('div');
+                meta.className = 'photo-admin-meta';
+                meta.innerHTML = '<span class="photo-target">' + (photoLabels[p.target] || p.target) + '</span>' +
+                    '<span class="photo-cap">' + (p.caption ? escapeHtml(p.caption) : '<em>No caption</em>') + '</span>';
+                card.appendChild(meta);
 
-            var del = document.createElement('button');
-            del.type = 'button';
-            del.className = 'btn-del';
-            del.textContent = 'Remove';
-            del.addEventListener('click', function () {
-                var remaining = getPhotos().filter(function (x) { return x.id !== p.id; });
-                savePhotos(remaining);
-                renderPhotoList();
+                var del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'btn-del';
+                del.textContent = 'Remove';
+                del.addEventListener('click', function () { removePhoto(p.id); });
+                card.appendChild(del);
+
+                photoList.appendChild(card);
             });
-            card.appendChild(del);
+        };
 
-            photoList.appendChild(card);
-        });
+        if (apiOn) {
+            apiGetState().then(function (s) { done(s.photos || []); })
+                .catch(function () { done([]); });
+        } else {
+            done(lsGetPhotos());
+        }
     }
 
-    function escapeHtml(s) {
-        return s.replace(/[&<>"']/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-        });
+    function removePhoto(id) {
+        if (apiOn) {
+            apiSend('DELETE', '/api/photos/' + encodeURIComponent(id)).then(function () {
+                renderPhotoList();
+            }).catch(function (err) { flash(photoMsg, err.message, false); });
+        } else {
+            lsSavePhotos(lsGetPhotos().filter(function (x) { return x.id !== id; }));
+            renderPhotoList();
+        }
     }
 
-    /* ===== Init ===== */
-    if (isLoggedIn()) { showDashboard(); } else { showLogin(); }
+    /* ===================== Init ===================== */
+
+    var usernameField = document.getElementById('username');
+    var usernameRow = usernameField ? usernameField.closest('.field') : null;
+
+    apiGetState().then(function (s) {
+        apiOn = !!(s && s.persistent);
+    }).catch(function () {
+        apiOn = false;
+    }).finally(function () {
+        // With the real backend, only a password is needed — hide the username field.
+        if (apiOn && usernameRow) {
+            usernameRow.hidden = true;
+            if (usernameField) usernameField.removeAttribute('required');
+        }
+        if (isLoggedIn()) { showDashboard(); } else { showLogin(); }
+    });
 
 }());

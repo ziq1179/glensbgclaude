@@ -1,0 +1,17 @@
+{
+  "name": "glens-residential-home",
+  "version": "1.0.0",
+  "description": "The Glens Residential Home website with shared photo/content storage on Neon Postgres.",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
